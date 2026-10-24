@@ -1,0 +1,65 @@
+<% layout('/layouts/boilerplate')%>
+
+<main class="listing-page">
+        <h2 class="mb-4">All Listings</h2>
+        <form class="listing-search row g-2 align-items-end mb-4" action="/listings" method="GET">
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="listing-place">Place</label>
+                <input class="form-control" id="listing-place" name="place" type="search"
+                    placeholder="City or country" value="<%= filters.place %>">
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="listing-activity">Stay or activity</label>
+                <input class="form-control" id="listing-activity" name="activity" type="search"
+                    placeholder="Cabin, beach, hiking..." value="<%= filters.activity %>">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="min-price">Min price</label>
+                <input class="form-control" id="min-price" name="minPrice" type="number" min="0"
+                    placeholder="Any" value="<%= filters.minPrice %>">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="max-price">Max price</label>
+                <input class="form-control" id="max-price" name="maxPrice" type="number" min="0"
+                    placeholder="Any" value="<%= filters.maxPrice %>">
+            </div>
+            <div class="col-6 col-md-1 d-grid">
+                <button class="btn btn-dark" type="submit" aria-label="Search listings">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                </button>
+            </div>
+            <% if (filters.place || filters.activity || filters.minPrice !== "" || filters.maxPrice !== "") { %>
+                <div class="col-6 text-end">
+                    <a class="btn btn-link" href="/listings">Clear filters</a>
+                </div>
+            <% } %>
+        </form>
+        <p class="text-muted mb-3"><%= allListings.length %> listing<%= allListings.length === 1 ? "" : "s" %> found</p>
+        <section class="listing-results" aria-label="Search results">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
+                <% for(let listing of allListings){ %>
+                    <div class="col">
+                        <a href="/listings/<%= listing._id%>" class="listing-link">
+                            <div class="card">
+                                <img src="<%= listing.image.url%>" class="card-img-top" alt="listing_image"
+                                    style="height:20rem;">
+                                <div class="card-img-overlay"></div>
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        <b><%= listing.title %></b>
+                                        <br> ₹<%= (listing.price ?? 0).toLocaleString("en-IN") %> / night
+                                        <br><%= listing.location %>, <%= listing.country %>
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                <% } %>
+            </div>
+            <% if (allListings.length === 0) { %>
+                <div class="alert alert-light border" role="status">
+                    No listings match your search. Try changing the place, activity, or price range.
+                </div>
+            <% } %>
+        </section>
+</main>

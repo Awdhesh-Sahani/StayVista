@@ -1,0 +1,41 @@
+<% layout('/layouts/boilerplate') %>
+
+<main class="auth-shell">
+    <section class="auth-welcome">
+        <a class="auth-brand" href="/"><img src="/home.jpg" alt="StayVista"></a>
+        <div class="auth-welcome-copy">
+            <p class="auth-eyebrow">YOUR NEXT CHAPTER STARTS HERE</p>
+            <h1>Welcome to<br>StayVista</h1>
+            <p>Find a place that feels like yours. Discover stays worth remembering, wherever you want to go.</p>
+        </div>
+        <p class="auth-welcome-footer">Find your place. Make yourself at home.</p>
+    </section>
+
+    <section class="auth-form-panel">
+        <div class="auth-form-card">
+            <p class="auth-eyebrow">JOIN STAYVISTA</p>
+            <h2>Create your account</h2>
+            <p class="auth-subtitle">Sign up to explore all our listings.</p>
+
+            <% if (message) { %>
+                <div class="alert alert-danger" role="alert"><%= message %></div>
+            <% } %>
+
+            <form method="POST" action="/signup">
+                <div class="mb-3">
+                    <label class="form-label" for="email">Email address</label>
+                    <input class="form-control auth-input" id="email" name="email" type="email"
+                        autocomplete="email" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label" for="password">Password</label>
+                    <input class="form-control auth-input" id="password" name="password" type="password"
+                        autocomplete="new-password" minlength="8" required>
+                    <div class="form-text">Use at least 8 characters.</div>
+                </div>
+                <button class="btn auth-submit w-100" type="submit">Create account</button>
+            </form>
+            <p class="auth-switch">Already have an account? <a href="/login">Log in</a></p>
+        </div>
+    </section>
+</main>
