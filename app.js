@@ -186,8 +186,8 @@ app.get("/listings", (req, res, next) => {
         filters: {
             place: filters.place || "",
             activity: filters.activity || "",
-            minPrice: filters.minPrice ? ? "",
-            maxPrice: filters.maxPrice ? ? "",
+            minPrice: filters.minPrice ?? "",
+            maxPrice: filters.maxPrice ?? "",
         },
     });
 }));
