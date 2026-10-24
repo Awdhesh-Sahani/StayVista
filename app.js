@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const mongoose = require('mongoose');
@@ -12,6 +13,8 @@ const User = require("./models/user.js");
 const { startSession, endSession, loadCurrentUser, requireAuth } = require("./utils/auth.js");
 const { hashPassword, verifyPassword } = require("./utils/password.js");
 const { listingSchema } = require("./schema.js");
+const PORT = process.env.PORT || 8080;
+
 
 const authFormSchema = Joi.object({
     email: Joi.string().email().trim().lowercase().required(),
@@ -31,10 +34,21 @@ main().then(() => {
 }).catch(err => console.log(err));
 
 async function main() {
-    await mongoose.connect('mongodb://127.0.0.1:27017/StayVista');
+    //await mongoose.connect('mongodb://127.0.0.1:27017/StayVista');
+    const MONGODB_URI = process.env.MONGODB_URI;
+
+    async function main() {
+        if (!MONGODB_URI) {
+            throw new Error("MONGODB_URI environment variable is missing");
+        }
+
+        await mongoose.connect(MONGODB_URI);
+        console.log("MongoDB connected successfully");
+    }
 }
 
 app.set("view engine", "ejs");
+app.set("trust proxy", 1);
 app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -172,8 +186,8 @@ app.get("/listings", (req, res, next) => {
         filters: {
             place: filters.place || "",
             activity: filters.activity || "",
-            minPrice: filters.minPrice ?? "",
-            maxPrice: filters.maxPrice ?? "",
+            minPrice: filters.minPrice ? ? "",
+            maxPrice: filters.maxPrice ? ? "",
         },
     });
 }));
@@ -259,6 +273,6 @@ function getSafeReturnTo(value) {
     return "/listings";
 }
 
-app.listen(8080, () => {
-    console.log("server is listen on port 8080");
+app.listen(PORT, () => {
+    console.log(`StayVista server running on port ${PORT}`);
 });
