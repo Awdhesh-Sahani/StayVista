@@ -16,6 +16,7 @@ const { listingSchema } = require("./schema.js");
 const authFormSchema = Joi.object({
     email: Joi.string().email().trim().lowercase().required(),
     password: Joi.string().min(8).required(),
+    returnTo: Joi.string().optional(),
 });
 const listingSearchSchema = Joi.object({
     place: Joi.string().trim().max(100).allow(""),
@@ -42,29 +43,35 @@ app.engine('ejs', ejsMate);
 app.use(express.static(path.join(__dirname, "public")));
 app.use(loadCurrentUser);
 
-function renderAuthPage(res, page, statusCode, message) {
+function renderAuthPage(res, page, statusCode, message, returnTo = "/listings") {
     res.status(statusCode).render(`auth/${page}.ejs`, {
         authPage: true,
         message,
+        returnTo,
     });
 }
 
 app.get("/", (req, res) => {
-    res.redirect(req.currentUser ? "/listings" : "/login");
+    res.redirect("/home");
+});
+
+app.get("/home", (req, res) => {
+    res.render("home.ejs", { authPage: true });
 });
 
 app.get(["/login", "/signup"], (req, res) => {
     if (req.currentUser) {
-        return res.redirect("/listings");
+        return res.redirect(getSafeReturnTo(req.query.returnTo));
     }
     const page = req.path === "/signup" ? "signup" : "login";
-    renderAuthPage(res, page, 200, null);
+    renderAuthPage(res, page, 200, null, getSafeReturnTo(req.query.returnTo));
 });
 
 app.post("/signup", wrapAsync(async(req, res) => {
+    const returnTo = getSafeReturnTo(req.body.returnTo);
     const { error, value } = authFormSchema.validate(req.body, { abortEarly: true });
     if (error) {
-        return renderAuthPage(res, "signup", 400, error.details[0].message);
+        return renderAuthPage(res, "signup", 400, error.details[0].message, returnTo);
     }
 
     const { salt, hash } = await hashPassword(value.password);
@@ -78,37 +85,36 @@ app.post("/signup", wrapAsync(async(req, res) => {
         await user.save();
     } catch (err) {
         if (err.code === 11000) {
-            return renderAuthPage(res, "signup", 409, "An account with this email already exists.");
+            return renderAuthPage(res, "signup", 409, "An account with this email already exists.", returnTo);
         }
         throw err;
     }
 
     await startSession(user, req, res);
-    res.redirect("/listings");
+    res.redirect(returnTo);
 }));
 
 app.post("/login", wrapAsync(async(req, res) => {
+    const returnTo = getSafeReturnTo(req.body.returnTo);
     const { error, value } = authFormSchema.validate(req.body, { abortEarly: true });
     if (error) {
-        return renderAuthPage(res, "login", 400, error.details[0].message);
+        return renderAuthPage(res, "login", 400, error.details[0].message, returnTo);
     }
 
     const user = await User.findOne({ email: value.email })
         .select("+passwordHash +passwordSalt");
     if (!user || !(await verifyPassword(value.password, user.passwordSalt, user.passwordHash))) {
-        return renderAuthPage(res, "login", 401, "Email or password is incorrect.");
+        return renderAuthPage(res, "login", 401, "Email or password is incorrect.", returnTo);
     }
 
     await startSession(user, req, res);
-    res.redirect("/listings");
+    res.redirect(returnTo);
 }));
 
 app.post("/logout", wrapAsync(async(req, res) => {
     await endSession(req, res);
-    res.redirect("/login");
+    res.redirect("/home");
 }));
-
-app.use("/listings", requireAuth);
 
 const validateListing = (req, res, next) => {
     let { error, value } = listingSchema.validate(req.body);
@@ -123,7 +129,12 @@ const validateListing = (req, res, next) => {
 
 // index route
 
-app.get("/listings", wrapAsync(async(req, res) => {
+app.get("/listings", (req, res, next) => {
+    if (["place", "activity", "minPrice", "maxPrice"].some((key) => key in req.query)) {
+        return requireAuth(req, res, next);
+    }
+    next();
+}, wrapAsync(async(req, res) => {
     const searchQuery = {...req.query };
     if (searchQuery.minPrice === "") delete searchQuery.minPrice;
     if (searchQuery.maxPrice === "") delete searchQuery.maxPrice;
@@ -170,7 +181,7 @@ app.get("/listings", wrapAsync(async(req, res) => {
 
 // New Route
 
-app.get("/listings/new", (req, res) => {
+app.get("/listings/new", requireAuth, (req, res) => {
     res.render("listings/new.ejs");
 });
 
@@ -187,7 +198,7 @@ app.get("/listings/:id", wrapAsync(async(req, res) => {
 
 // Create Route
 
-app.post("/listings", validateListing, wrapAsync(async(req, res) => {
+app.post("/listings", requireAuth, validateListing, wrapAsync(async(req, res) => {
     const newListing = new Listing(req.body.listing);
     await newListing.save();
     res.redirect("/listings");
@@ -196,7 +207,7 @@ app.post("/listings", validateListing, wrapAsync(async(req, res) => {
 
 //Edit Route
 
-app.get("/listings/:id/edit", wrapAsync(async(req, res) => {
+app.get("/listings/:id/edit", requireAuth, wrapAsync(async(req, res) => {
     let { id } = req.params;
     let listing = await Listing.findById(id);
     if (!listing) {
@@ -207,7 +218,7 @@ app.get("/listings/:id/edit", wrapAsync(async(req, res) => {
 
 //Uppdate Route
 
-app.put("/listings/:id", validateListing, wrapAsync(async(req, res) => {
+app.put("/listings/:id", requireAuth, validateListing, wrapAsync(async(req, res) => {
     let { id } = req.params;
     let listing = await Listing.findByIdAndUpdate(id, {...req.body.listing }, { runValidators: true });
     if (!listing) {
@@ -218,7 +229,7 @@ app.put("/listings/:id", validateListing, wrapAsync(async(req, res) => {
 
 // Delete Route
 
-app.delete("/listings/:id", wrapAsync(async(req, res) => {
+app.delete("/listings/:id", requireAuth, wrapAsync(async(req, res) => {
     let { id } = req.params;
     let deletedListing = await Listing.findByIdAndDelete(id);
     if (!deletedListing) {
@@ -239,6 +250,14 @@ app.use((err, req, res, next) => {
     res.status(statusCode).render("error.ejs", { message });
 
 });
+
+function getSafeReturnTo(value) {
+    if (typeof value === "string" && value.startsWith("/") &&
+        !value.startsWith("//") && !value.includes("\\")) {
+        return value;
+    }
+    return "/listings";
+}
 
 app.listen(8080, () => {
     console.log("server is listen on port 8080");

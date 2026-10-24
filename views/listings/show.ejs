@@ -20,11 +20,13 @@
                 </p>
             </div>
         </div>
-        <div class="listing-actions d-flex align-items-start gap-2 col-8 offset-2">
-            <a href="/listings/<%=listing._id %>/edit" class="btn btn-outline-success edit-btn">Edit</a>
-            <form method="POST" action="/listings/<%=listing._id %>?_method=DELETE">
-                <button class="btn btn-danger">Delete</button>
-            </form>
-        </div>
+        <% if (currentUser) { %>
+            <div class="listing-actions d-flex align-items-start gap-2 col-8 offset-2">
+                <a href="/listings/<%=listing._id %>/edit" class="btn btn-outline-success edit-btn">Edit</a>
+                <form method="POST" action="/listings/<%=listing._id %>?_method=DELETE">
+                    <button class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        <% } %>
     </div>
     </div>

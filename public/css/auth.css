@@ -30,6 +30,31 @@
         url("https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1800&q=90") center/cover;
 }
 
+.auth-home-shell {
+    display: block;
+}
+
+.auth-home-welcome {
+    min-height: 100vh;
+}
+
+.auth-home-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.auth-next-button {
+    display: inline-flex;
+    min-width: 8rem;
+    align-items: center;
+    justify-content: center;
+    gap: .65rem;
+    padding: .85rem 1.25rem;
+    text-decoration: none;
+}
+
 .auth-brand {
     display: inline-flex;
     width: fit-content;
@@ -189,6 +214,10 @@
         padding: 1.6rem;
     }
 
+    .auth-home-welcome {
+        min-height: 100vh;
+    }
+
     .auth-welcome h1 {
         margin-bottom: .75rem;
         font-size: clamp(2.6rem, 9vw, 4rem);
@@ -197,6 +226,15 @@
     .auth-welcome-copy > p:last-child,
     .auth-welcome-footer {
         display: none;
+    }
+
+    .auth-home-actions {
+        align-items: flex-end;
+        justify-content: flex-end;
+    }
+
+    .auth-home-welcome .auth-welcome-footer {
+        display: block;
     }
 
     .auth-form-panel {

@@ -72,7 +72,7 @@ const loadCurrentUser = wrapAsync(async (req, res, next) => {
 
 function requireAuth(req, res, next) {
     if (!req.currentUser) {
-        return res.redirect("/login");
+        return res.redirect(`/login?returnTo=${encodeURIComponent(req.originalUrl)}`);
     }
     next();
 }
