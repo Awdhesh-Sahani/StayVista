@@ -29,22 +29,18 @@ const listingSearchSchema = Joi.object({
 }).unknown(false);
 
 
-main().then(() => {
-    console.log("Database Connect Successfuly")
-}).catch(err => console.log(err));
-
-async function main() {
-    //await mongoose.connect('mongodb://127.0.0.1:27017/StayVista');
+async function startServer() {
     const MONGODB_URI = process.env.MONGODB_URI;
-
-    async function main() {
-        if (!MONGODB_URI) {
-            throw new Error("MONGODB_URI environment variable is missing");
-        }
-
-        await mongoose.connect(MONGODB_URI);
-        console.log("MongoDB connected successfully");
+    if (!MONGODB_URI) {
+        throw new Error("MONGODB_URI environment variable is missing");
     }
+
+    await mongoose.connect(MONGODB_URI);
+    console.log("MongoDB connected successfully");
+
+    app.listen(PORT, () => {
+        console.log(`StayVista server running on port ${PORT}`);
+    });
 }
 
 app.set("view engine", "ejs");
@@ -273,6 +269,7 @@ function getSafeReturnTo(value) {
     return "/listings";
 }
 
-app.listen(PORT, () => {
-    console.log(`StayVista server running on port ${PORT}`);
+startServer().catch((err) => {
+    console.error("Failed to start StayVista:", err);
+    process.exitCode = 1;
 });

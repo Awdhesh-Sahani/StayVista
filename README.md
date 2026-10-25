@@ -94,16 +94,6 @@ PORT=8080
 NODE_ENV=development
 ```
 
-If you use a `.env` file, install `dotenv` and load it at the beginning of `app.js`:
-
-```bash
-npm install dotenv
-```
-
-```js
-require("dotenv").config();
-```
-
 Never commit your `.env` file or expose database credentials publicly.
 
 ### 4. Start the Application
@@ -118,16 +108,23 @@ Open the following URL in your browser:
 http://localhost:8080
 ```
 
-## 🚀 Deployment
+## 🚀 Deploy to Render
 
-StayVista can be deployed using Render and MongoDB Atlas.
+StayVista is a Node.js web service and needs a reachable MongoDB database.
 
-1. Push the project to GitHub.
-2. Create a new Web Service on Render and connect your repository.
-3. Set the build command to `npm install`.
-4. Set the start command to `npm start`.
-5. Configure `MONGODB_URI` and `NODE_ENV` in Render's environment settings.
-6. Deploy the application and open the generated public URL.
+1. Create a MongoDB Atlas database. In Atlas **Network Access**, allow connections from Render (for a quick setup, `0.0.0.0/0`; use stronger network restrictions where practical). Create a database user and copy the Atlas connection string.
+2. Push the project to GitHub, then in Render choose **New → Web Service** and connect the repository.
+3. Use these service settings:
+   - **Runtime:** Node
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start`
+   - **Instance Type:** Free is enough to try the app
+4. In the service's **Environment** settings, add:
+   - `MONGODB_URI` — the MongoDB Atlas connection string, with the database username/password and database name filled in
+   - `NODE_ENV` — `production`
+5. Click **Create Web Service**. Render installs the dependencies, starts the app, and provides its public URL. Render sets `PORT` automatically; do not set a fixed `PORT` in the Render environment.
+
+Keep the Atlas connection string private. Do not upload `.env` to GitHub; add secrets in Render's environment settings instead. If deployment fails, check the Render deploy logs and confirm the Atlas database user, connection string, and Network Access settings.
 
 ## 🔐 Security Notes
 
