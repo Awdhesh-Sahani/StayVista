@@ -126,6 +126,8 @@ StayVista is a Node.js web service and needs a reachable MongoDB database.
 
 Keep the Atlas connection string private. Do not upload `.env` to GitHub; add secrets in Render's environment settings instead. If deployment fails, check the Render deploy logs and confirm the Atlas database user, connection string, and Network Access settings.
 
+To add missing sample listings to Atlas, set `MONGODB_URI` in your local `.env` to the same Atlas connection string used by Render, then run `npm run seed` from your project folder. The seed command adds only missing samples and never deletes existing listings. Keep `.env` private.
+
 ## 🔐 Security Notes
 
 - Store database credentials in environment variables.
